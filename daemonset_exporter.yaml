@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: DaemonSet
+spec:
+  replicas: 3
+  selector: 
+    matchLabels: 
+      app: daemonset_exporter
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: daemonset_exporter
+    spec:
+      hostNetwork: true
+      container:
+      - name: daemonset_exporter
+        image: prom/node-exporter:latest
+        ports:
+        - containerPort: 9100
+          hostPort: 9100
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 256Mi
+          requests:
+            cpu: "0.25"
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        startupProbe:
+          tcpSoocket:
+            port: 80
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1 
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+      volumes: 
+      - name: proc 
+        hostPath:
+          path: /proc
+      - name: sys 
+        hostPath:
+          path: /sys
+
+
+
