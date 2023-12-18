@@ -1,0 +1,7 @@
+FROM golang:1.21.0 AS build
+WORKDIR /app
+COPY . /app
+RUN CGO_ENABLED=0 GOOS=linux go build -o api main.go
+COPY . .              
+
+CMD ["/app/main"]
